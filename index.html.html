@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>每日星座運勢查詢</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      position: relative;
+    }
+
+    /* 右上角顯示樣式 */
+    .top-right-tag {
+      position: fixed;
+      top: 18px;
+      right: 24px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: #ffd369;
+      backdrop-filter: blur(6px);
+      z-index: 100;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      color: #ffd369;
+    }
+
+    p.subtitle {
+      font-size: 0.95rem;
+      color: #cccccc;
+      margin-bottom: 24px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    input[type="date"] {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.9);
+      color: #1a1a2e;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #f39c12, #e67e22);
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4);
+    }
+
+    .result-card {
+      display: none;
+      margin-top: 20px;
+      padding: 22px;
+      background: rgba(0, 0, 0, 0.28);
+      border-radius: 14px;
+      text-align: left;
+      border-left: 4px solid #ffd369;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .zodiac-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      padding-bottom: 10px;
+    }
+
+    .zodiac-name {
+      font-size: 1.45rem;
+      font-weight: bold;
+      color: #ffd369;
+    }
+
+    .zodiac-date {
+      font-size: 0.85rem;
+      color: #bbbbbb;
+    }
+
+    .fortune-item {
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .fortune-item span.label {
+      color: #ffd369;
+      font-weight: bold;
+    }
+
+    .sub-fortunes {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sub-card {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 12px 14px;
+      border-radius: 10px;
+    }
+
+    .sub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    .sub-title {
+      color: #ffd369;
+    }
+
+    .sub-stars {
+      color: #ff9f43;
+      letter-spacing: 1px;
+    }
+
+    .sub-desc {
+      font-size: 0.9rem;
+      color: #e0e0e0;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 右上角顯示 17盧 -->
+  <div class="top-right-tag">17盧</div>
+
+  <div class="container">
+    <h1>✨ 星座運勢占卜</h1>
+    <p class="subtitle">請選擇您的出生日期，查看專屬星座與今日全方位運勢</p>
+
+    <div class="input-group">
+      <input type="date" id="birthday" required>
+      <button onclick="checkHoroscope()">查詢星座運勢</button>
+    </div>
+
+    <div class="result-card" id="result">
+      <div class="zodiac-header">
+        <div class="zodiac-name" id="zodiacName"></div>
+        <div class="zodiac-date" id="zodiacDate"></div>
+      </div>
+
+      <div class="fortune-item">
+        <span class="label">綜合運勢：</span><span id="stars" style="color:#ff9f43;"></span>
+      </div>
+      <div class="fortune-item">
+        <span class="label">幸運色：</span><b id="luckyColor"></b>　|　<span class="label">幸運數字：</span><b id="luckyNumber"></b>
+      </div>
+      <div class="fortune-item">
+        <span class="label">今日指引：</span>
+        <p id="fortuneText" style="margin-top:4px; color:#eaeaea;"></p>
+      </div>
+
+      <div class="sub-fortunes">
+        <div class="sub-card">
+          <div class="sub-header">
+            <span class="sub-title">💖 愛情運</span>
+            <span class="sub-stars" id="loveStars"></span>
+          </div>
+          <p class="sub-desc" id="loveText"></p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-header">
+            <span class="sub-title">💼 事業運</span>
+            <span class="sub-stars" id="careerStars"></span>
+          </div>
+          <p class="sub-desc" id="careerText"></p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-header">
+            <span class="sub-title">💰 財運</span>
+            <span class="sub-stars" id="wealthStars"></span>
+          </div>
+          <p class="sub-desc" id="wealthText"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const horoscopes = [
+      {
+        name: "摩羯座 ♑", range: "12/22 - 01/19", stars: "★★★★★", color: "深藍色", number: "8",
+        text: "工作與學業表現亮眼，適合制定長遠計畫，踏實前進將會獲得意想不到的肯定。",
+        loveStars: "★★★★☆", loveText: "感情穩定升溫，真誠傾聽伴侶的想法能讓彼此更靠近；單身者易在工作場合結識對象。",
+        careerStars: "★★★★★", careerText: "專業能力備受上司與同事信賴，適合主導重要專案或提出具體執行方案。",
+        wealthStars: "★★★★☆", wealthText: "正財運穩健，適合進行長期理財規劃，避免一時衝動的非必要開銷。"
+      },
+      {
+        name: "水瓶座 ♒", range: "01/20 - 02/18", stars: "★★★★☆", color: "銀白色", number: "4",
+        text: "靈感源源不絕的一天，多與朋友交流創意想法，可能會遇到志同道合的新夥伴。",
+        loveStars: "★★★★☆", loveText: "魅力在自然互動中展現，與朋友聚會或參與興趣社團有機會擦出新火花。",
+        careerStars: "★★★★★", careerText: "創新點子容易獲得採納，非常適合腦力激盪、企劃發想與跨領域合作。",
+        wealthStars: "★★★☆☆", wealthText: "財運平穩，投資理財宜保持觀望，多蒐集資訊再做決定會更安全。"
+      },
+      {
+        name: "雙魚座 ♓", range: "02/19 - 03/20", stars: "★★★★★", color: "湖水綠", number: "7",
+        text: "直覺敏銳，人際關係和諧融洽。適合安排放鬆活動或欣賞藝術，為心靈充電。",
+        loveStars: "★★★★★", loveText: "浪漫氛圍濃厚，適合安排一場溫馨約會；單身者有機會遇到溫柔體貼的對象。",
+        careerStars: "★★★★☆", careerText: "團隊合作氣氛佳，善用同理心溝通能順利化解職場上的小誤會。",
+        wealthStars: "★★★★☆", wealthText: "偏財運小有驚喜，可能收到小禮物或意外優惠，但仍需留意預算控管。"
+      },
+      {
+        name: "牡羊座 ♈", range: "03/21 - 04/19", stars: "★★★★☆", color: "正紅色", number: "9",
+        text: "行動力十足，適合主動出擊解決拖延已久的任務，但溝通時記得保持耐心。",
+        loveStars: "★★★★☆", loveText: "熱情直接的表達方式能快速拉近距離，但別忘了給對方多一點回應空間。",
+        careerStars: "★★★★★", careerText: "衝勁與效率極高，適合挑戰高難度目標或爭取表現機會，成果立竿見影。",
+        wealthStars: "★★★☆☆", wealthText: "花錢速度較快，購物前建議先列好清單，避免因一時興起而超支。"
+      },
+      {
+        name: "金牛座 ♉", range: "04/20 - 05/20", stars: "★★★★☆", color: "大地棕", number: "6",
+        text: "財運與生活品質穩定提升，適合檢視理財規劃，享受一頓美食能帶來好心情。",
+        loveStars: "★★★★☆", loveText: "細水長流的陪伴最動人，一起品嚐美食或散步都能為感情加分。",
+        careerStars: "★★★★☆", careerText: "按部就班完成手邊工作就能累積好口碑，務實的態度是你的最大優勢。",
+        wealthStars: "★★★★★", wealthText: "財運表現亮眼，過去的努力開始看見回報，適合檢視儲蓄與穩健型資產。"
+      },
+      {
+        name: "雙子座 ♊", range: "05/21 - 06/21", stars: "★★★★★", color: "亮黃色", number: "5",
+        text: "資訊接收快速，學習與表達能力極佳，非常適合進行簡報、面試或重要討論。",
+        loveStars: "★★★★★", loveText: "幽默風趣的談吐讓你成為焦點，多分享生活趣事能讓彼此感情更加活絡。",
+        careerStars: "★★★★☆", careerText: "溝通協調能力出色，適合處理客戶聯繫、談判或需要快速反應的任務。",
+        wealthStars: "★★★★☆", wealthText: "透過人脈或新資訊有機會發現不錯的開源管道，保持敏銳度將有所收穫。"
+      },
+      {
+        name: "巨蟹座 ♋", range: "06/22 - 07/22", stars: "★★★★☆", color: "珍珠白", number: "2",
+        text: "家庭與親密關係帶來滿滿溫暖，適合整理居家環境，讓生活空間更加舒適。",
+        loveStars: "★★★★★", loveText: "情感交流深刻且溫暖，適合與另一半談心，共同規劃未來的生活藍圖。",
+        careerStars: "★★★★☆", careerText: "在熟悉的領域中表現穩定，細心照顧團隊需求能贏得夥伴的感謝與支持。",
+        wealthStars: "★★★★☆", wealthText: "適合將資金投入居家生活品質提升或家庭儲蓄計畫，收支維持良好平衡。"
+      },
+      {
+        name: "獅子座 ♌", range: "07/23 - 08/22", stars: "★★★★★", color: "金色", number: "1",
+        text: "自信與魅力散發光芒，容易成為團隊焦點，勇敢展現實力將能贏得掌聲。",
+        loveStars: "★★★★★", loveText: "桃花運旺盛，大方展現自信與熱情，容易吸引欣賞你才華的對象主動靠近。",
+        careerStars: "★★★★★", careerText: "領導風範十足，適合站上舞台發表想法或帶領團隊衝刺業績。",
+        wealthStars: "★★★★☆", wealthText: "正財隨工作表現水漲船高，社交聚會雖有開銷，但也能帶來不錯的人脈紅利。"
+      },
+      {
+        name: "處女座 ♍", range: "08/23 - 09/22", stars: "★★★★☆", color: "米白色", number: "3",
+        text: "細心與分析能力幫助你避開潛在錯誤，適合處理繁瑣細節與整理待辦事項。",
+        loveStars: "★★★☆☆", loveText: "對感情容易想太多，試著放下過度分析，用輕鬆自然的心態享受相處時光。",
+        careerStars: "★★★★★", careerText: "精準度與執行力極高，適合進行數據核對、流程優化或收尾檢驗工作。",
+        wealthStars: "★★★★☆", wealthText: "精打細算讓你成功省下不少開支，適合整理帳目與調整每月預算分配。"
+      },
+      {
+        name: "天秤座 ♎", range: "09/23 - 10/23", stars: "★★★★★", color: "粉紅色", number: "6",
+        text: "社交運勢極佳，容易獲得貴人相助，遇到選擇題時相信自己的審美與判斷。",
+        loveStars: "★★★★★", loveText: "人見人愛的魅力讓你桃花朵朵開，有伴者相處甜蜜，適合一起參加藝文活動。",
+        careerStars: "★★★★☆", careerText: "合作運勢佳，善用協調手腕能促成雙贏局面，遇事可多聽取夥伴建議。",
+        wealthStars: "★★★★☆", wealthText: "財運穩中求進，在美感、設計或人際合作相關領域容易獲得額外收益。"
+      },
+      {
+        name: "天蠍座 ♏", range: "10/24 - 11/22", stars: "★★★★☆", color: "酒紅色", number: "9",
+        text: "專注力極高，適合深入研究感興趣的領域，低調耕耘將能累積強大能量。",
+        loveStars: "★★★★☆", loveText: "感情專一且深情，坦誠分享內心真實感受能讓彼此的信任感大幅提升。",
+        careerStars: "★★★★★", careerText: "洞察力敏銳，能迅速抓出問題核心並解決難題，適合處理機密或策略性任務。",
+        wealthStars: "★★★★★", wealthText: "偏財與投資眼光精準，適合研究長期價值標的，但仍要做好風險分散。"
+      },
+      {
+        name: "射手座 ♐", range: "11/23 - 12/21", stars: "★★★★★", color: "天藍色", number: "3",
+        text: "充滿冒險精神與樂觀能量，適合規劃短途旅行或嘗試新事物，好運正悄悄靠近。",
+        loveStars: "★★★★☆", loveText: "開朗樂觀的態度極具感染力，一起體驗新鮮事物或戶外活動能讓感情迅速升溫。",
+        careerStars: "★★★★☆", careerText: "視野開闊，適合接觸海外業務、進修新技能或開拓全新市場機會。",
+        wealthStars: "★★★★☆", wealthText: "財運伴隨行動而來，勇於嘗試新方法有機會帶來額外進帳，記得見好就收。"
+      }
+    ];
+
+    function getZodiacIndex(month, day) {
+      if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 0; // 摩羯
+      if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 1;  // 水瓶
+      if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return 2;  // 雙魚
+      if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 3;  // 牡羊
+      if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 4;  // 金牛
+      if ((month === 5 && day >= 21) || (month === 6 && day <= 21)) return 5;  // 雙子
+      if ((month === 6 && day >= 22) || (month === 7 && day <= 22)) return 6;  // 巨蟹
+      if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 7;  // 獅子
+      if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 8;  // 處女
+      if ((month === 9 && day >= 23) || (month === 10 && day <= 23)) return 9; // 天秤
+      if ((month === 10 && day >= 24) || (month === 11 && day <= 22)) return 10; // 天蠍
+      return 11; // 射手
+    }
+
+    function checkHoroscope() {
+      const input = document.getElementById("birthday").value;
+      if (!input) {
+        alert("請先選擇您的生日！");
+        return;
+      }
+
+      const parts = input.split("-");
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+
+      const index = getZodiacIndex(month, day);
+      const data = horoscopes[index];
+
+      document.getElementById("zodiacName").textContent = data.name;
+      document.getElementById("zodiacDate").textContent = data.range;
+      document.getElementById("stars").textContent = data.stars;
+      document.getElementById("luckyColor").textContent = data.color;
+      document.getElementById("luckyNumber").textContent = data.number;
+      document.getElementById("fortuneText").textContent = data.text;
+
+      document.getElementById("loveStars").textContent = data.loveStars;
+      document.getElementById("loveText").textContent = data.loveText;
+      document.getElementById("careerStars").textContent = data.careerStars;
+      document.getElementById("careerText").textContent = data.careerText;
+      document.getElementById("wealthStars").textContent = data.wealthStars;
+      document.getElementById("wealthText").textContent = data.wealthText;
+
+      const resultCard = document.getElementById("result");
+      resultCard.style.display = "none";
+      void resultCard.offsetWidth;
+      resultCard.style.display = "block";
+    }
+  </script>
+
+</body>
+</html>
